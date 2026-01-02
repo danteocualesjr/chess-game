@@ -44,19 +44,27 @@ export function Piece({ piece, square, isSelected, isValidMove, onDragStart, onD
       dragConstraints={false}
       onDragStart={() => onDragStart(square)}
       onDragEnd={(event, info) => {
-        // Use the point coordinates to find the target square
+        // Get the drop coordinates
         const x = info.point.x;
         const y = info.point.y;
         
+        // Temporarily hide the dragged element to see what's underneath
+        const draggedElement = event.target as HTMLElement;
+        const originalPointerEvents = draggedElement.style.pointerEvents;
+        draggedElement.style.pointerEvents = 'none';
+        
         // Find element at the drop point
         const targetElement = document.elementFromPoint(x, y);
+        
+        // Restore pointer events
+        draggedElement.style.pointerEvents = originalPointerEvents || 'auto';
         
         if (targetElement) {
           // Look for the square element (could be the square div or a child)
           const squareElement = targetElement.closest('[data-square]') as HTMLElement;
           if (squareElement) {
             const targetSquare = squareElement.getAttribute('data-square');
-            if (targetSquare && targetSquare !== square) {
+            if (targetSquare) {
               onDragEnd(targetSquare);
             }
           }

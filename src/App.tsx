@@ -24,21 +24,20 @@ function App() {
     isThinking,
     aiError,
     handleSquareClick,
+    handleMove,
     resetGame,
   } = useChessGame();
 
-  const [draggedSquare, setDraggedSquare] = useState<string | null>(null);
-
   const handleDragStart = (square: string) => {
-    setDraggedSquare(square);
+    // Select the piece when dragging starts - this will highlight valid moves
     handleSquareClick(square);
   };
 
   const handleDragEnd = (targetSquare: string) => {
-    if (draggedSquare && draggedSquare !== targetSquare) {
-      handleSquareClick(targetSquare);
+    // When drag ends, if we have a selected square, try to make the move
+    if (selectedSquare && selectedSquare !== targetSquare) {
+      handleMove(selectedSquare, targetSquare);
     }
-    setDraggedSquare(null);
   };
 
   return (

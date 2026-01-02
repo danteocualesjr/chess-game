@@ -16,6 +16,17 @@ export function useChessGame() {
 
   const { makeMove: getAIMove, isThinking, error: aiError } = useAIPlayer(chessEngine);
   const playerColor = useRef<'w' | 'b'>('w');
+  const selectedSquareRef = useRef<string | null>(null);
+  const validMovesRef = useRef<string[]>([]);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    selectedSquareRef.current = selectedSquare;
+  }, [selectedSquare]);
+
+  useEffect(() => {
+    validMovesRef.current = validMoves;
+  }, [validMoves]);
 
   useEffect(() => {
     updateGameStatus();
@@ -46,74 +57,6 @@ export function useChessGame() {
     setMoveHistory(entries);
   };
 
-  const handleSquareClick = useCallback(
-    (square: string) => {
-      // If AI is thinking, ignore clicks
-      if (isThinking) return;
-
-      // If it's not player's turn, ignore
-      if (chessEngine.getTurn() !== playerColor.current) return;
-
-      // If game is over, ignore
-      if (chessEngine.isGameOver()) return;
-
-      // If clicking the same square, deselect
-      if (selectedSquare === square) {
-        setSelectedSquare(null);
-        setValidMoves([]);
-        return;
-      }
-
-      const board = chessEngine.getBoard();
-      const [file, rank] = square.split('');
-      const row = 8 - parseInt(rank);
-      const col = file.charCodeAt(0) - 97;
-      const piece = board[row]?.[col];
-
-      // If clicking on a piece of the current player
-      if (piece && piece.color === playerColor.current) {
-        setSelectedSquare(square);
-        const moves = chessEngine.getValidMoves(square);
-        setValidMoves(moves);
-        return;
-      }
-
-      // If a square is selected and clicking on a valid move square
-      if (selectedSquare && validMoves.includes(square)) {
-        makePlayerMove(selectedSquare, square);
-        return;
-      }
-
-      // Otherwise, deselect
-      setSelectedSquare(null);
-      setValidMoves([]);
-    },
-    [selectedSquare, validMoves, isThinking, chessEngine]
-  );
-
-  const makePlayerMove = useCallback(
-    async (from: string, to: string) => {
-      const move = chessEngine.makeMove(from, to);
-      
-      if (!move) {
-        setSelectedSquare(null);
-        setValidMoves([]);
-        return;
-      }
-
-      setLastMove(move);
-      setSelectedSquare(null);
-      setValidMoves([]);
-      updateGameStatus();
-
-      // If game is not over, let AI make a move
-      if (!chessEngine.isGameOver() && chessEngine.getTurn() !== playerColor.current) {
-        await makeAIMove();
-      }
-    },
-    [chessEngine]
-  );
-
   const makeAIMove = useCallback(async () => {
     const response = await getAIMove(difficulty, teachingMode);
     
@@ -137,6 +80,79 @@ export function useChessGame() {
     }
   }, [chessEngine, difficulty, teachingMode, getAIMove]);
 
+  const makePlayerMove = useCallback(
+    async (from: string, to: string) => {
+      const move = chessEngine.makeMove(from, to);
+      
+      if (!move) {
+        setSelectedSquare(null);
+        setValidMoves([]);
+        return;
+      }
+
+      setLastMove(move);
+      setSelectedSquare(null);
+      setValidMoves([]);
+      updateGameStatus();
+
+      // If game is not over, let AI make a move
+      if (!chessEngine.isGameOver() && chessEngine.getTurn() !== playerColor.current) {
+        await makeAIMove();
+      }
+    },
+    [chessEngine, makeAIMove]
+  );
+
+  const handleSquareClick = useCallback(
+    (square: string) => {
+      // If AI is thinking, ignore clicks
+      if (isThinking) return;
+
+      // If it's not player's turn, ignore
+      if (chessEngine.getTurn() !== playerColor.current) return;
+
+      // If game is over, ignore
+      if (chessEngine.isGameOver()) return;
+
+      const currentSelected = selectedSquareRef.current;
+      const currentValidMoves = validMovesRef.current;
+
+      // If clicking the same square, deselect
+      if (currentSelected === square) {
+        setSelectedSquare(null);
+        setValidMoves([]);
+        return;
+      }
+
+      const board = chessEngine.getBoard();
+      const [file, rank] = square.split('');
+      const row = 8 - parseInt(rank);
+      const col = file.charCodeAt(0) - 97;
+      const piece = board[row]?.[col];
+
+      // If clicking on a piece of the current player
+      if (piece && piece.color === playerColor.current) {
+        const moves = chessEngine.getValidMoves(square);
+        setSelectedSquare(square);
+        setValidMoves(moves);
+        return;
+      }
+
+      // If a square is selected and clicking on a valid move square
+      if (currentSelected && currentValidMoves.includes(square)) {
+        setSelectedSquare(null);
+        setValidMoves([]);
+        makePlayerMove(currentSelected, square);
+        return;
+      }
+
+      // Otherwise, deselect
+      setSelectedSquare(null);
+      setValidMoves([]);
+    },
+    [isThinking, chessEngine, makePlayerMove]
+  );
+
   const resetGame = useCallback(() => {
     chessEngine.reset();
     setSelectedSquare(null);
@@ -155,6 +171,18 @@ export function useChessGame() {
     setAiExplanation(null);
   }, []);
 
+  const handleMove = useCallback(
+    (from: string, to: string) => {
+      // Check if it's a valid move
+      if (validMovesRef.current.includes(to) && selectedSquareRef.current === from) {
+        setSelectedSquare(null);
+        setValidMoves([]);
+        makePlayerMove(from, to);
+      }
+    },
+    [makePlayerMove]
+  );
+
   return {
     board: getBoard(),
     selectedSquare,
@@ -171,6 +199,7 @@ export function useChessGame() {
     isThinking,
     aiError,
     handleSquareClick,
+    handleMove,
     resetGame,
     playerColor: playerColor.current,
   };
