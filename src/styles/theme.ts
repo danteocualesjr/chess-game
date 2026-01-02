@@ -1,0 +1,58 @@
+export const theme = {
+  colors: {
+    primary: {
+      50: '#fef9e7',
+      100: '#fef3c7',
+      200: '#fde68a',
+      300: '#fcd34d',
+      400: '#fbbf24',
+      500: '#f59e0b',
+      600: '#d97706',
+      700: '#b45309',
+      800: '#92400e',
+      900: '#78350f',
+    },
+    dark: {
+      50: '#f8fafc',
+      100: '#f1f5f9',
+      200: '#e2e8f0',
+      300: '#cbd5e1',
+      400: '#94a3b8',
+      500: '#64748b',
+      600: '#475569',
+      700: '#334155',
+      800: '#1e293b',
+      900: '#0f172a',
+    },
+  },
+  spacing: {
+    xs: '0.25rem',
+    sm: '0.5rem',
+    md: '1rem',
+    lg: '1.5rem',
+    xl: '2rem',
+    '2xl': '3rem',
+    '3xl': '4rem',
+  },
+  borderRadius: {
+    sm: '0.25rem',
+    md: '0.5rem',
+    lg: '0.75rem',
+    xl: '1rem',
+    '2xl': '1.5rem',
+    full: '9999px',
+  },
+  shadows: {
+    soft: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    medium: '0 4px 16px rgba(0, 0, 0, 0.15)',
+    strong: '0 8px 32px rgba(0, 0, 0, 0.2)',
+    glow: '0 0 20px rgba(251, 191, 36, 0.5)',
+    'glow-strong': '0 0 30px rgba(251, 191, 36, 0.7)',
+  },
+  transitions: {
+    fast: '150ms',
+    normal: '300ms',
+    slow: '500ms',
+  },
+};
+
